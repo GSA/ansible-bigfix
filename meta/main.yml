@@ -10,9 +10,11 @@ galaxy_info:
       versions:
         - 2016
         - 2019
+        - 2022
     - name: EL
       versions:
         - 7
+        - 8
   galaxy_tags:
     - windows
     - rhel

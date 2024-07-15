@@ -1,13 +1,13 @@
 ---
 # handlers file for ansible-bigfix
-- name: restart bigfix service (redhat)
-  service:
+- name: Restart bigfix service (redhat)
+  ansible.builtin.service:
     name: besclient
     state: restarted
   when: ansible_os_family = 'RedHat'
 
-- name: restart bigfix service (windows)
-  win_service:
+- name: Restart bigfix service (windows)
+  ansible.windows.win_service:
     name: besclient
     state: restarted
   when: ansible_os_family = 'Windows'

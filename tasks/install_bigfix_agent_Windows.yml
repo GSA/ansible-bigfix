@@ -1,40 +1,43 @@
 ---
-- name: checking for agent install
-  win_service:
+# tasks file for bigfix_agent - Windows
+- name: Checking for agent install
+  ansible.windows.win_service:
     name: besclient
   register: agent
 
-- debug:
+- name: Debug - Agent not found
+  ansible.builtin.debug:
     msg: "bigfix agent not found (installing)"
   when: not agent.exists
 
-- debug:
+- name: Debug - Agent found
+  ansible.builtin.debug:
     msg: "bigfix agent found (skipping install)"
   when: agent.exists
 
-- name: create {{ windows_agent_log }} directory
-  win_file:
+- name: Create directory {{ windows_agent_log }}
+  ansible.windows.win_file:
     path: '{{ windows_agent_log }}'
-    recurse: yes
+    recurse: true
     state: directory
   when: not agent.exists
 
-- name: create {{ windows_bigfix_agent_path }} directory
-  win_file:
+- name: Create directory {{ windows_bigfix_agent_path }}
+  ansible.windows.win_file:
     path: '{{ windows_bigfix_agent_path }}'
-    recurse: yes
+    recurse: true
     state: directory
   when: not agent.exists
 
-- name: copy actionsite.afxm to {{ windows_bigfix_agent_path }} directory
-  win_get_url:
+- name: Copy actionsite.afxm to directory {{ windows_bigfix_agent_path }}
+  ansible.windows.win_get_url:
     url: '{{ bigfix_actionsite_url }}'
     dest: '{{ windows_bigfix_agent_path }}\ActionSite.afxm'
-    timeout: 600
+    timeout: '600'
   when: not agent.exists
 
-- name: install bigfix agent (windows)
-  win_package:
+- name: Install bigfix agent (windows)
+  ansible.windows.win_package:
     path: '{{ windows_bigfix_agent_url }}'
     log_path: '{{ windows_agent_log }}\bigfix_log.txt'
     product_id: '{{ windows_bigfix_product_id }}'
@@ -42,15 +45,14 @@
     arguments: /qn
   when: not agent.exists
 
-- name: verify bigfix started
-  win_service:
+- name: Verify bigfix started
+  ansible.windows.win_service:
     name: besclient
-    enabled: yes
     state: started
     start_mode: auto
 
-- name: update registry for bigfix custom properties
-  win_regedit:
+- name: Update registry for bigfix custom properties
+  ansible.windows.win_regedit:
     path: HKLM:\SOFTWARE\WOW6432Node\BigFix\EnterpriseClient\Settings\Client\{{ item.name }}
     type: string
     name: value

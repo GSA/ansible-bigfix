@@ -1,8 +1,4 @@
 ---
-- name: RedHat
-  include: redhat.yml
-  when: ansible_os_family == 'RedHat'
-
-- name: Windows
-  include: windows.yml
-  when: ansible_os_family == 'Windows'
+# tasks file for bigfix_agent
+- name: Install BigFix Agent
+  ansible.builtin.include_tasks: "install_bigfix_agent_{{ ansible_os_family }}.yml"

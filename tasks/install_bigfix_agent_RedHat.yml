@@ -1,61 +1,63 @@
 ---
-- name: checking for agent install
-  stat:
+# tasks file for bigfix_agent - RedHat
+- name: Checking for agent install
+  ansible.builtin.stat:
     path: /etc/init.d/besclient
   register: agent
 
-- debug:
+- name: Debug - Agent not found
+  ansible.builtin.debug:
     msg: "bigfix agent not found (installing)"
-  when: not agent.stat.exists
+  when: not agent.exists
 
-- debug:
+- name: Debug - Agent found
+  ansible.builtin.debug:
     msg: "bigfix agent found (skipping install)"
-  when: agent.stat.exists
+  when: agent.exists
 
-- name: create {{ redhat_bigfix_agent_path }} directory
-  file:
+- name: Create directory {{ redhat_bigfix_agent_path }}
+  ansible.builtin.file:
     path: '{{ redhat_bigfix_agent_path }}'
-    recurse: yes
+    recurse: true
     state: directory
-    mode: 0500
+    mode: '0500'
   when: not agent.stat.exists
 
-- name: install bigfix agent (redhat)
-  yum:
+- name: Install bigfix agent (redhat)
+  ansible.builtin.yum:
     name: '{{ redhat_bigfix_agent_url }}'
     state: present
-    validate_certs: no
+    validate_certs: false
     disable_plugin: "yum-rhn-plugin"
     disablerepo: "*"
     download_dir: '{{ redhat_bigfix_agent_path }}'
   when: not agent.stat.exists
 
-- name: copy actionsite.afxm to {{ redhat_bigfix_agent_path }} directory
-  get_url:
+- name: Copy actionsite.afxm to directory {{ redhat_bigfix_agent_path }}
+  ansible.builtin.get_url:
     url: '{{ bigfix_actionsite_url }}'
     dest: '{{ redhat_bigfix_agent_path }}/actionsite.afxm'
-    validate_certs: no
+    validate_certs: false
     mode: '0755'
   when: not agent.stat.exists
 
-- name: verify bigfix started
-  service:
+- name: Verify bigfix started
+  ansible.builtin.service:
     name: besclient
-    enabled: yes
+    enabled: true
     state: started
 
-- name: update besclient.config for bigfix custom properties
-  lineinfile:
+- name: Update besclient.config for bigfix custom properties
+  ansible.builtin.lineinfile:
     path: /var/opt/BESClient/besclient.config
-    create: yes
-    backup: yes
+    create: true
+    backup: true
     insertafter: EOF
-    mode: 0644
+    mode: '0644'
     line: |
       [Software\BigFix\EnterpriseClient\Settings\Client\{{ item.name }}]
       value                          = {{ item.value }}
       effective date                 = Thu,%2020%20Aug%202020%2010:17:38%20-0500
-
   with_items:
     - "{{ bigfix_custom_properties }}"
   when: not agent.stat.exists
